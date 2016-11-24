@@ -75,6 +75,15 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
 
         // ...
     }
+    protected void onResume()
+    {
+        super.onResume();
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_NORMAL );
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL );
+        mGoogleApiClient.connect();
+    }
+
+
 
     protected void onStart() {
         mGoogleApiClient.connect();
@@ -95,6 +104,10 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
     @Override
     public void onConnected(Bundle connectionHint) {
 
+        //String latitudeSymbol;
+        //String longitudeSymbol;
+        StringBuffer latitudeSymbol=new StringBuffer();
+        StringBuffer longitudeSymbol=new StringBuffer();
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
@@ -104,14 +117,29 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
 
         if (mLastLocation != null) {
 
+            if(mLastLocation.getLatitude()<=90)
+            {
 
+                latitudeSymbol.replace(0,1,"N");
+            }
+            else
+            {
+                latitudeSymbol.replace(0,1,"S");
+            }
+            if(mLastLocation.getLongitude()>=0 && mLastLocation.getLongitude()<=180 )
+            {
+
+                longitudeSymbol.replace(0,1,"E");
+            }
+            else
+            {
+                longitudeSymbol.replace(0,1,"W");
+            }
 
             String mLatitudeText=String.valueOf(mLastLocation.getLatitude());
-
             String mLongitudeText=String.valueOf(mLastLocation.getLongitude());
 
-
-            locationTextView.setText(mLatitudeText+" "+mLongitudeText);
+            locationTextView.setText("Your location : \n"+mLatitudeText+" "+latitudeSymbol+" "+mLongitudeText+" " + longitudeSymbol);
         }
         else
         {
@@ -143,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
                 float axisY = event.values[1];
                 float axisZ = event.values[2];
 
-                gyroscopeTextView.setText("Gyroscope: " + axisX + "\n" + axisY + "\n" + axisZ);
+                gyroscopeTextView.setText("Gyroscope values: \n" + axisX + "\n" + axisY + "\n" + axisZ);
 
 
                 // Calculate the angular speed of the sample
@@ -171,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         }
         if( event.sensor.getType() == Sensor.TYPE_LIGHT)
         {
-            lightTextView.setText("value: " + event.values[0] + " lux" );
+            lightTextView.setText("Light value: \n" + event.values[0] + " lux" );
 
         }
 
