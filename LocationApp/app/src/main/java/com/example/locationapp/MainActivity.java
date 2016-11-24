@@ -27,11 +27,13 @@ import static java.lang.Math.*;
 public class MainActivity extends AppCompatActivity implements ConnectionCallbacks,OnConnectionFailedListener,SensorEventListener {
 
 
-    private TextView locationText;
+    private TextView locationTextView;
     private TextView gyroscopeTextView;
+    private TextView lightTextView;
     private GoogleApiClient mGoogleApiClient;
     private SensorManager mSensorManager;
-    private Sensor mSensor;
+    private Sensor gyroscopeSensor;
+    private Sensor lightSensor;
     private final static double EPSILON = 0.00001;
     private static final float NS2S = 1.0f / 1000000000.0f;
     private final float[] deltaRotationVector = new float[4];
@@ -51,13 +53,16 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
                     .build();
         }
 
-        locationText=(TextView) findViewById(R.id.locationText);
+        locationTextView=(TextView) findViewById(R.id.locationTextView);
         gyroscopeTextView=(TextView) findViewById(R.id.gyroscopeTextView) ;
+        lightTextView=(TextView) findViewById(R.id.lightTextView);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
-        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        gyroscopeSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        lightSensor=mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_NORMAL );
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL );
 
     }
 
@@ -106,12 +111,12 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
             String mLongitudeText=String.valueOf(mLastLocation.getLongitude());
 
 
-            locationText.setText(mLatitudeText+" "+mLongitudeText);
+            locationTextView.setText(mLatitudeText+" "+mLongitudeText);
         }
         else
         {
 
-            locationText.setText("Location failed");
+            locationTextView.setText("Location failed");
         }
 
     }
@@ -130,40 +135,45 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         // after computing it from the gyro sample data.
 
 
+        if( event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+            if (timestamp != 0) {
+                final float dT = (event.timestamp - timestamp) * NS2S;
+                // Axis of the rotation sample, not normalized yet.
+                float axisX = event.values[0];
+                float axisY = event.values[1];
+                float axisZ = event.values[2];
 
-        if (timestamp != 0) {
-            final float dT = (event.timestamp - timestamp) * NS2S;
-            // Axis of the rotation sample, not normalized yet.
-            float axisX = event.values[0];
-            float axisY = event.values[1];
-            float axisZ = event.values[2];
-
-            gyroscopeTextView.setText("Gyroscope: "+axisX+"\n"+axisY+"\n"+axisZ);
+                gyroscopeTextView.setText("Gyroscope: " + axisX + "\n" + axisY + "\n" + axisZ);
 
 
-            // Calculate the angular speed of the sample
-            float omegaMagnitude = (float) sqrt(axisX*axisX + axisY*axisY + axisZ*axisZ);
+                // Calculate the angular speed of the sample
+                float omegaMagnitude = (float) sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
 
-            // Normalize the rotation vector if it's big enough to get the axis
-            if (omegaMagnitude > EPSILON) {
-                axisX /= omegaMagnitude;
-                axisY /= omegaMagnitude;
-                axisZ /= omegaMagnitude;
+                // Normalize the rotation vector if it's big enough to get the axis
+                if (omegaMagnitude > EPSILON) {
+                    axisX /= omegaMagnitude;
+                    axisY /= omegaMagnitude;
+                    axisZ /= omegaMagnitude;
+                }
+
+                float thetaOverTwo = omegaMagnitude * dT / 2.0f;
+                float sinThetaOverTwo = (float) sin(thetaOverTwo);
+                float cosThetaOverTwo = (float) cos(thetaOverTwo);
+                deltaRotationVector[0] = sinThetaOverTwo * axisX;
+                deltaRotationVector[1] = sinThetaOverTwo * axisY;
+                deltaRotationVector[2] = sinThetaOverTwo * axisZ;
+                deltaRotationVector[3] = cosThetaOverTwo;
             }
+            timestamp = event.timestamp;
+            float[] deltaRotationMatrix = new float[9];
+            SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);
 
-            float thetaOverTwo = omegaMagnitude * dT / 2.0f;
-            float sinThetaOverTwo = (float) sin(thetaOverTwo);
-            float cosThetaOverTwo = (float) cos(thetaOverTwo);
-            deltaRotationVector[0] = sinThetaOverTwo * axisX;
-            deltaRotationVector[1] = sinThetaOverTwo * axisY;
-            deltaRotationVector[2] = sinThetaOverTwo * axisZ;
-            deltaRotationVector[3] = cosThetaOverTwo;
         }
-        timestamp = event.timestamp;
-        float[] deltaRotationMatrix = new float[9];
-        SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);
+        if( event.sensor.getType() == Sensor.TYPE_LIGHT)
+        {
+            lightTextView.setText("value: " + event.values[0] + " lux" );
 
-
+        }
 
     }
 

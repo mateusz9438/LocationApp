@@ -24,13 +24,20 @@
         android:layout_height="30dp"
         android:layout_below="@+id/locationLabel"
         android:layout_alignParentStart="true"
-        android:id="@+id/locationText"
+        android:id="@+id/locationTextView"
         android:layout_alignParentEnd="true" />
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_below="@+id/locationText"
-        android:layout_alignParentStart="true"
         android:id="@+id/gyroscopeTextView"
-        android:layout_height="80dp" />
+        android:layout_height="80dp"
+        android:layout_below="@+id/locationTextView"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:id="@+id/lightTextView"
+        android:layout_below="@+id/gyroscopeTextView"
+        android:layout_alignParentStart="true" />
 </RelativeLayout>
