@@ -2,24 +2,33 @@ package com.example.locationapp;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+
+
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+
 import android.location.Location;
+
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.drive.Drive;
+
 import com.google.android.gms.location.LocationServices;
-import android.hardware.SensorEvent;
-import java.text.CollationElementIterator;
+
+import android.widget.ToggleButton;
+
+
+
+
 
 import static java.lang.Math.*;
 
@@ -27,6 +36,7 @@ import static java.lang.Math.*;
 public class MainActivity extends AppCompatActivity implements ConnectionCallbacks,OnConnectionFailedListener,SensorEventListener {
 
 
+    private ToggleButton flashlightSwitch;
     private TextView locationTextView;
     private TextView gyroscopeTextView;
     private TextView lightTextView;
@@ -38,6 +48,10 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
     private static final float NS2S = 1.0f / 1000000000.0f;
     private final float[] deltaRotationVector = new float[4];
     private float timestamp;
+    private boolean hasFlash;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         locationTextView=(TextView) findViewById(R.id.locationTextView);
         gyroscopeTextView=(TextView) findViewById(R.id.gyroscopeTextView) ;
         lightTextView=(TextView) findViewById(R.id.lightTextView);
+        flashlightSwitch=(ToggleButton) findViewById(R.id.flashlightSwitch);
+
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
@@ -64,7 +80,40 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_NORMAL );
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL );
 
+        hasFlash = getApplicationContext().getPackageManager()
+                .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+
+
+
+        if(hasFlash==true)
+        {
+
+
+            flashlightSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        //TURN ON
+
+
+                    } else {
+                        //TURN OFF
+
+
+                    }
+                }
+            });
+        }
+        else
+        {
+            flashlightSwitch.setEnabled(false);
+        }
+
+
     }
+
+
+
+
 
 
     @Override
@@ -81,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_NORMAL );
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL );
         mGoogleApiClient.connect();
+
     }
 
 
@@ -88,17 +138,20 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
     protected void onStart() {
         mGoogleApiClient.connect();
         super.onStart();
+
     }
 
     protected void onStop() {
         mGoogleApiClient.disconnect();
         super.onStop();
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mSensorManager.unregisterListener(this);
+
     }
 
     @Override

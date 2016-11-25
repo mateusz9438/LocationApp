@@ -39,4 +39,13 @@
         android:text="light"
         android:textAppearance="@android:style/TextAppearance.Material.Large"
         android:layout_height="100dp" />
+
+    <ToggleButton
+        android:text="ToggleButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/flashlightSwitch"
+        android:textOff="Light Off"
+        android:textOn="Light On"
+        android:textColorLink="@android:color/holo_green_light" />
 </LinearLayout>
