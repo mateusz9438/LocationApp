@@ -19,8 +19,9 @@
         android:id="@+id/locationTextView"
         android:layout_alignParentEnd="true"
         android:text="location"
-        android:textAppearance="@android:style/TextAppearance.Material.Large"
-        android:layout_height="100dp" />
+        android:textAppearance="@android:style/TextAppearance.Material.Medium"
+        android:layout_height="80dp"
+        android:textColor="@color/cast_expanded_controller_background_color" />
 
     <TextView
         android:layout_width="match_parent"
@@ -28,8 +29,9 @@
         android:layout_below="@+id/locationTextView"
         android:layout_alignParentStart="true"
         android:text="gyroscope"
-        android:textAppearance="@android:style/TextAppearance.Material.Large"
-        android:layout_height="150dp" />
+        android:textAppearance="@android:style/TextAppearance.Material.Medium"
+        android:layout_height="120dp"
+        android:textColor="@color/cast_expanded_controller_background_color" />
 
     <TextView
         android:layout_width="match_parent"
@@ -37,8 +39,17 @@
         android:layout_below="@+id/gyroscopeTextView"
         android:layout_alignParentStart="true"
         android:text="light"
-        android:textAppearance="@android:style/TextAppearance.Material.Large"
-        android:layout_height="100dp" />
+        android:textAppearance="@android:style/TextAppearance.Material.Medium"
+        android:layout_height="80dp"
+        android:textColor="@color/cast_expanded_controller_background_color" />
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:id="@+id/compassTextView"
+        android:textAppearance="@android:style/TextAppearance.Material.Medium"
+        android:textColor="@color/cast_expanded_controller_background_color" />
 
     <ToggleButton
         android:text="ToggleButton"

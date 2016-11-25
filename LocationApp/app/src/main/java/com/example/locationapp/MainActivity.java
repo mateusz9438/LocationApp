@@ -26,12 +26,7 @@ import com.google.android.gms.location.LocationServices;
 
 import android.widget.ToggleButton;
 
-
-
-
-
 import static java.lang.Math.*;
-
 
 public class MainActivity extends AppCompatActivity implements ConnectionCallbacks,OnConnectionFailedListener,SensorEventListener {
 
@@ -40,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
     private TextView locationTextView;
     private TextView gyroscopeTextView;
     private TextView lightTextView;
+    private TextView compassTextView;
     private GoogleApiClient mGoogleApiClient;
     private SensorManager mSensorManager;
     private Sensor gyroscopeSensor;
@@ -71,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         gyroscopeTextView=(TextView) findViewById(R.id.gyroscopeTextView) ;
         lightTextView=(TextView) findViewById(R.id.lightTextView);
         flashlightSwitch=(ToggleButton) findViewById(R.id.flashlightSwitch);
-
+        compassTextView=(TextView) findViewById(R.id.compassTextView);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
@@ -129,6 +125,8 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         super.onResume();
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_NORMAL );
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL );
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),SensorManager.SENSOR_DELAY_NORMAL);
+
         mGoogleApiClient.connect();
 
     }
@@ -255,6 +253,13 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
             lightTextView.setText("Light value: \n" + event.values[0] + " lux" );
 
         }
+        if( event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
+        {
+            compassTextView.setText("Magnetic value: \n" + event.values[0] + " "+event.values[1] + " "+event.values[2] + " μT" );
+
+        }
+
+
 
     }
 
