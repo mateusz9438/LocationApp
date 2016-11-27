@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 
 
+import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -14,7 +15,8 @@ import android.location.Location;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.CompoundButton;
+import android.view.View;
+
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -45,7 +47,8 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
     private final float[] deltaRotationVector = new float[4];
     private float timestamp;
     private boolean hasFlash;
-
+    private Camera camera;
+    private Camera.Parameters parameters;
 
 
 
@@ -79,36 +82,47 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         hasFlash = getApplicationContext().getPackageManager()
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
+        if(hasFlash) {
+
+            camera = Camera.open();
+            parameters = camera.getParameters();
+        }
+
+
+
+    }
+
+    public void light(View view){
 
 
         if(hasFlash==true)
         {
 
+            if(!view.isSelected()) {
+                flashOn();
+                view.setSelected(true);
+            }else if(view.isSelected()){
+                flashOff();
+                view.setSelected(false);
+            }
 
-            flashlightSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
-                        //TURN ON
-
-
-                    } else {
-                        //TURN OFF
-
-
-                    }
-                }
-            });
-        }
-        else
-        {
-            flashlightSwitch.setEnabled(false);
         }
 
 
     }
 
-
-
+    public void flashOn()
+    {
+        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+        camera.setParameters(parameters);
+        camera.startPreview();
+    }
+    public void flashOff()
+    {
+        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+        camera.setParameters(parameters);
+        camera.stopPreview();
+    }
 
 
 
@@ -142,14 +156,14 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
     protected void onStop() {
         mGoogleApiClient.disconnect();
         super.onStop();
-
+        flashOff();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mSensorManager.unregisterListener(this);
-
+        flashOff();
     }
 
     @Override

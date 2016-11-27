@@ -58,5 +58,6 @@
         android:id="@+id/flashlightSwitch"
         android:textOff="Light Off"
         android:textOn="Light On"
-        android:textColorLink="@android:color/holo_green_light" />
+        android:textColorLink="@android:color/holo_green_light"
+        android:onClick="light" />
 </LinearLayout>
