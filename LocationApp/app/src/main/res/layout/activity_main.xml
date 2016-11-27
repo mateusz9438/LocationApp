@@ -23,6 +23,13 @@
         android:layout_height="80dp"
         android:textColor="@color/cast_expanded_controller_background_color" />
 
+    <Button
+        android:text="Show your localization"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/showLocButton"
+        android:onClick="showMaps" />
+
     <TextView
         android:layout_width="match_parent"
         android:id="@+id/gyroscopeTextView"
@@ -44,7 +51,7 @@
         android:textColor="@color/cast_expanded_controller_background_color" />
 
     <TextView
-        android:text="TextView"
+        android:text="Compass"
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:id="@+id/compassTextView"
@@ -60,4 +67,5 @@
         android:textOn="Light On"
         android:textColorLink="@android:color/holo_green_light"
         android:onClick="light" />
+
 </LinearLayout>

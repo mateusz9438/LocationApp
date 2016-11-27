@@ -1,6 +1,7 @@
 package com.example.locationapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 
 
@@ -17,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -49,8 +51,9 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
     private boolean hasFlash;
     private Camera camera;
     private Camera.Parameters parameters;
-
-
+    public final static String EXTRA_MESSAGE = "com.example.firstapp.MESSAGE";
+    private String mLatitudeText;
+    private String mLongitudeText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,52 +91,8 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
             parameters = camera.getParameters();
         }
 
-
-
     }
 
-    public void light(View view){
-
-
-        if(hasFlash==true)
-        {
-
-            if(!view.isSelected()) {
-                flashOn();
-                view.setSelected(true);
-            }else if(view.isSelected()){
-                flashOff();
-                view.setSelected(false);
-            }
-
-        }
-
-
-    }
-
-    public void flashOn()
-    {
-        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-        camera.setParameters(parameters);
-        camera.startPreview();
-    }
-    public void flashOff()
-    {
-        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-        camera.setParameters(parameters);
-        camera.stopPreview();
-    }
-
-
-
-    @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        // An unresolvable error has occurred and a connection to Google APIs
-        // could not be established. Display an error message, or handle
-        // the failure silently
-
-        // ...
-    }
     protected void onResume()
     {
         super.onResume();
@@ -144,8 +103,6 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         mGoogleApiClient.connect();
 
     }
-
-
 
     protected void onStart() {
         mGoogleApiClient.connect();
@@ -166,11 +123,53 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         flashOff();
     }
 
+    public void light(View view){
+        if(hasFlash==true)
+        {
+            if(!view.isSelected()) {
+                flashOn();
+                view.setSelected(true);
+            }else if(view.isSelected()){
+                flashOff();
+                view.setSelected(false);
+            }
+        }
+    }
+
+    public void flashOn()
+    {
+        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+        camera.setParameters(parameters);
+        camera.startPreview();
+    }
+    public void flashOff()
+    {
+        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+        camera.setParameters(parameters);
+        camera.stopPreview();
+    }
+
+    public void showMaps(View view)
+    {
+        Intent intent = new Intent(this, MapsActivity.class);
+        double latitude=Double.parseDouble(mLatitudeText);
+        double longtitude=Double.parseDouble(mLongitudeText);
+
+        double[] values= new double[2];
+        values[0]=latitude;
+        values[1]=longtitude;
+
+        if(values!=null)
+        {
+            intent.putExtra(EXTRA_MESSAGE, values);
+            startActivity(intent);
+        }
+
+    }
     @Override
     public void onConnected(Bundle connectionHint) {
 
-        //String latitudeSymbol;
-        //String longitudeSymbol;
+
         StringBuffer latitudeSymbol=new StringBuffer();
         StringBuffer longitudeSymbol=new StringBuffer();
 
@@ -184,7 +183,6 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
 
             if(mLastLocation.getLatitude()<=90)
             {
-
                 latitudeSymbol.replace(0,1,"N");
             }
             else
@@ -193,34 +191,35 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
             }
             if(mLastLocation.getLongitude()>=0 && mLastLocation.getLongitude()<=180 )
             {
-
-                longitudeSymbol.replace(0,1,"E");
+               longitudeSymbol.replace(0,1,"E");
             }
             else
             {
                 longitudeSymbol.replace(0,1,"W");
             }
-
-            String mLatitudeText=String.valueOf(mLastLocation.getLatitude());
-            String mLongitudeText=String.valueOf(mLastLocation.getLongitude());
+            mLatitudeText=String.valueOf(mLastLocation.getLatitude());
+            mLongitudeText=String.valueOf(mLastLocation.getLongitude());
 
             locationTextView.setText("Your location : \n"+mLatitudeText+" "+latitudeSymbol+" "+mLongitudeText+" " + longitudeSymbol);
         }
         else
         {
-
             locationTextView.setText("Location failed");
         }
 
     }
+    @Override
+    public void onConnectionFailed(ConnectionResult result) {
+        // An unresolvable error has occurred and a connection to Google APIs
+        // could not be established. Display an error message, or handle
+        // the failure silently
 
-
+        // ...
+    }
     @Override
     public void onConnectionSuspended(int i) {
         System.out.println("Connection Suspended");
     }
-
-
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -238,7 +237,6 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
 
                 gyroscopeTextView.setText("Gyroscope values: \n" + axisX + "\n" + axisY + "\n" + axisZ);
 
-
                 // Calculate the angular speed of the sample
                 float omegaMagnitude = (float) sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
 
@@ -248,7 +246,6 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
                     axisY /= omegaMagnitude;
                     axisZ /= omegaMagnitude;
                 }
-
                 float thetaOverTwo = omegaMagnitude * dT / 2.0f;
                 float sinThetaOverTwo = (float) sin(thetaOverTwo);
                 float cosThetaOverTwo = (float) cos(thetaOverTwo);
@@ -269,17 +266,12 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         }
         if( event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
         {
-            compassTextView.setText("Magnetic value: \n" + event.values[0] + " "+event.values[1] + " "+event.values[2] + " μT" );
-
+            compassTextView.setText("Magnetic field value: \n" + event.values[0] + " "+event.values[1] + " "+event.values[2] + " μT" );
         }
-
-
-
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
     }
 }
 
