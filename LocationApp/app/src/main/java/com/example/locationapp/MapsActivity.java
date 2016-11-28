@@ -38,7 +38,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         LatLng yourLocalization = new LatLng(values[0], values[1]);
         mMap.addMarker(new MarkerOptions().position(yourLocalization).title("Marker in your localization"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(yourLocalization));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLocalization,7));
 
     }
 }

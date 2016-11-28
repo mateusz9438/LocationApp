@@ -2,6 +2,7 @@ package com.example.locationapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 
 
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
@@ -136,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         }
     }
 
+
     public void flashOn()
     {
         parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
@@ -151,19 +153,23 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
 
     public void showMaps(View view)
     {
-        Intent intent = new Intent(this, MapsActivity.class);
-        double latitude=Double.parseDouble(mLatitudeText);
-        double longtitude=Double.parseDouble(mLongitudeText);
 
-        double[] values= new double[2];
-        values[0]=latitude;
-        values[1]=longtitude;
-
-        if(values!=null)
+        if(mLatitudeText!=null &&  mLongitudeText!=null)
         {
+
+            Intent intent = new Intent(this, MapsActivity.class);
+            double latitude=Double.parseDouble(mLatitudeText);
+            double longtitude=Double.parseDouble(mLongitudeText);
+
+            double[] values= new double[2];
+            values[0]=latitude;
+            values[1]=longtitude;
             intent.putExtra(EXTRA_MESSAGE, values);
             startActivity(intent);
         }
+
+
+
 
     }
     @Override
@@ -192,6 +198,47 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
             if(mLastLocation.getLongitude()>=0 && mLastLocation.getLongitude()<=180 )
             {
                longitudeSymbol.replace(0,1,"E");
+            }
+            else
+            {
+                longitudeSymbol.replace(0,1,"W");
+            }
+            mLatitudeText=String.valueOf(mLastLocation.getLatitude());
+            mLongitudeText=String.valueOf(mLastLocation.getLongitude());
+
+            locationTextView.setText("Your location : \n"+mLatitudeText+" "+latitudeSymbol+" "+mLongitudeText+" " + longitudeSymbol);
+        }
+        else
+        {
+            locationTextView.setText("Location failed");
+        }
+
+    }
+
+    public void refresh(View view)
+    {
+        StringBuffer latitudeSymbol=new StringBuffer();
+        StringBuffer longitudeSymbol=new StringBuffer();
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            return;
+        }
+        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+        if (mLastLocation != null) {
+
+            if(mLastLocation.getLatitude()<=90)
+            {
+                latitudeSymbol.replace(0,1,"N");
+            }
+            else
+            {
+                latitudeSymbol.replace(0,1,"S");
+            }
+            if(mLastLocation.getLongitude()>=0 && mLastLocation.getLongitude()<=180 )
+            {
+                longitudeSymbol.replace(0,1,"E");
             }
             else
             {
