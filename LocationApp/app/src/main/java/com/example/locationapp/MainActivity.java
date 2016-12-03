@@ -14,12 +14,12 @@ import android.hardware.SensorManager;
 
 import android.location.Location;
 
+import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
-import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -27,13 +27,17 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import android.widget.ToggleButton;
 
 import static java.lang.Math.*;
 
-public class MainActivity extends AppCompatActivity implements ConnectionCallbacks,OnConnectionFailedListener,SensorEventListener {
+public class MainActivity extends AppCompatActivity implements LocationListener, ConnectionCallbacks, OnConnectionFailedListener, SensorEventListener {
 
 
     private ToggleButton flashlightSwitch;
@@ -41,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
     private TextView gyroscopeTextView;
     private TextView lightTextView;
     private TextView compassTextView;
-    private GoogleApiClient mGoogleApiClient;
+    public static GoogleApiClient mGoogleApiClient;
     private SensorManager mSensorManager;
     private Sensor gyroscopeSensor;
     private Sensor lightSensor;
@@ -55,13 +59,14 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
     public final static String EXTRA_MESSAGE = "com.example.firstapp.MESSAGE";
     private String mLatitudeText;
     private String mLongitudeText;
+    private LocationRequest mLocationRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
@@ -70,36 +75,39 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
                     .build();
         }
 
-        locationTextView=(TextView) findViewById(R.id.locationTextView);
-        gyroscopeTextView=(TextView) findViewById(R.id.gyroscopeTextView) ;
-        lightTextView=(TextView) findViewById(R.id.lightTextView);
-        flashlightSwitch=(ToggleButton) findViewById(R.id.flashlightSwitch);
-        compassTextView=(TextView) findViewById(R.id.compassTextView);
+        locationTextView = (TextView) findViewById(R.id.locationTextView);
+        gyroscopeTextView = (TextView) findViewById(R.id.gyroscopeTextView);
+        lightTextView = (TextView) findViewById(R.id.lightTextView);
+        flashlightSwitch = (ToggleButton) findViewById(R.id.flashlightSwitch);
+        compassTextView = (TextView) findViewById(R.id.compassTextView);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
         gyroscopeSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        lightSensor=mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_NORMAL );
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL );
+        lightSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL);
 
         hasFlash = getApplicationContext().getPackageManager()
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
-        if(hasFlash) {
+        if (hasFlash) {
 
             camera = Camera.open();
             parameters = camera.getParameters();
         }
 
+        //new LocationUpdate(this).execute();
+
+
     }
 
-    protected void onResume()
-    {
+
+    protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_NORMAL );
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL );
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL);
 
         mGoogleApiClient.connect();
 
@@ -124,13 +132,12 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         flashOff();
     }
 
-    public void light(View view){
-        if(hasFlash==true)
-        {
-            if(!view.isSelected()) {
+    public void light(View view) {
+        if (hasFlash == true) {
+            if (!view.isSelected()) {
                 flashOn();
                 view.setSelected(true);
-            }else if(view.isSelected()){
+            } else if (view.isSelected()) {
                 flashOff();
                 view.setSelected(false);
             }
@@ -138,46 +145,44 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
     }
 
 
-    public void flashOn()
-    {
+    public void flashOn() {
         parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
         camera.setParameters(parameters);
         camera.startPreview();
     }
-    public void flashOff()
-    {
+
+    public void flashOff() {
         parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
         camera.setParameters(parameters);
         camera.stopPreview();
     }
 
-    public void showMaps(View view)
-    {
 
-        if(mLatitudeText!=null &&  mLongitudeText!=null)
-        {
+    public void showMaps(View view) {
+
+        if (mLatitudeText != null && mLongitudeText != null) {
 
             Intent intent = new Intent(this, MapsActivity.class);
-            double latitude=Double.parseDouble(mLatitudeText);
-            double longtitude=Double.parseDouble(mLongitudeText);
+            double latitude = Double.parseDouble(mLatitudeText);
+            double longtitude = Double.parseDouble(mLongitudeText);
 
-            double[] values= new double[2];
-            values[0]=latitude;
-            values[1]=longtitude;
+            double[] values = new double[2];
+            values[0] = latitude;
+            values[1] = longtitude;
             intent.putExtra(EXTRA_MESSAGE, values);
             startActivity(intent);
         }
 
 
-
-
     }
+
     @Override
     public void onConnected(Bundle connectionHint) {
 
-
-        StringBuffer latitudeSymbol=new StringBuffer();
-        StringBuffer longitudeSymbol=new StringBuffer();
+        System.out.println("connected");
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setInterval(3000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
@@ -185,83 +190,72 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         }
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
-        if (mLastLocation != null) {
+        boolean mRequestingLocationUpdates=true;
 
-            if(mLastLocation.getLatitude()<=90)
-            {
-                latitudeSymbol.replace(0,1,"N");
-            }
-            else
-            {
-                latitudeSymbol.replace(0,1,"S");
-            }
-            if(mLastLocation.getLongitude()>=0 && mLastLocation.getLongitude()<=180 )
-            {
-               longitudeSymbol.replace(0,1,"E");
-            }
-            else
-            {
-                longitudeSymbol.replace(0,1,"W");
-            }
-            mLatitudeText=String.valueOf(mLastLocation.getLatitude());
-            mLongitudeText=String.valueOf(mLastLocation.getLongitude());
 
-            locationTextView.setText("Your location : \n"+mLatitudeText+" "+latitudeSymbol+" "+mLongitudeText+" " + longitudeSymbol);
-        }
-        else
-        {
-            locationTextView.setText("Location failed");
+        updateLocationUI(mLastLocation);
+        if (mRequestingLocationUpdates) {
+            startLocationUpdates();
         }
 
     }
 
-    public void refresh(View view)
-    {
-        StringBuffer latitudeSymbol=new StringBuffer();
-        StringBuffer longitudeSymbol=new StringBuffer();
+    public void updateLocationUI(Location location) {
+        StringBuffer latitudeSymbol = new StringBuffer();
+        StringBuffer longitudeSymbol = new StringBuffer();
+        if (location != null) {
+
+            if (location.getLatitude() <= 90) {
+                latitudeSymbol.replace(0, 1, "N");
+            } else {
+                latitudeSymbol.replace(0, 1, "S");
+            }
+            if (location.getLongitude() >= 0 && location.getLongitude() <= 180) {
+                longitudeSymbol.replace(0, 1, "E");
+            } else {
+                longitudeSymbol.replace(0, 1, "W");
+            }
+            mLatitudeText = String.valueOf(location.getLatitude());
+            mLongitudeText = String.valueOf(location.getLongitude());
+
+            locationTextView.setText("Your location : \n" + mLatitudeText + " " + latitudeSymbol + " " + mLongitudeText + " " + longitudeSymbol);
+        } else {
+            locationTextView.setText("Location failed");
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        Location mCurrentLocation = location;
+        mLatitudeText = String.valueOf(mCurrentLocation.getLatitude());
+        mLongitudeText = String.valueOf(mCurrentLocation.getLongitude());
+        System.out.println("changed");
+        updateLocationUI(mCurrentLocation);
+
+    }
+
+    protected void startLocationUpdates() {
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             return;
         }
-        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        System.out.println("startupdates");
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
+    public void refresh(View view)
+    {
 
-        if (mLastLocation != null) {
-
-            if(mLastLocation.getLatitude()<=90)
-            {
-                latitudeSymbol.replace(0,1,"N");
-            }
-            else
-            {
-                latitudeSymbol.replace(0,1,"S");
-            }
-            if(mLastLocation.getLongitude()>=0 && mLastLocation.getLongitude()<=180 )
-            {
-                longitudeSymbol.replace(0,1,"E");
-            }
-            else
-            {
-                longitudeSymbol.replace(0,1,"W");
-            }
-            mLatitudeText=String.valueOf(mLastLocation.getLatitude());
-            mLongitudeText=String.valueOf(mLastLocation.getLongitude());
-
-            locationTextView.setText("Your location : \n"+mLatitudeText+" "+latitudeSymbol+" "+mLongitudeText+" " + longitudeSymbol);
-        }
-        else
-        {
-            locationTextView.setText("Location failed");
-        }
-
+        locationReconnect();
+    }
+    public void locationReconnect()
+    {
+        mGoogleApiClient.reconnect();
     }
     @Override
     public void onConnectionFailed(ConnectionResult result) {
-        // An unresolvable error has occurred and a connection to Google APIs
-        // could not be established. Display an error message, or handle
-        // the failure silently
-
-        // ...
+        System.out.println("connection failed");
     }
     @Override
     public void onConnectionSuspended(int i) {
@@ -320,7 +314,11 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
+
+
+
 }
+
 
 
 

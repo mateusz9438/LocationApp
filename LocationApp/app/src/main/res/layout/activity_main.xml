@@ -14,7 +14,6 @@
 
     <TableRow>
     <TextView
-        android:layout_width="match_parent"
         android:layout_below="@+id/locationLabel"
         android:layout_alignParentStart="true"
         android:id="@+id/locationTextView"
@@ -22,7 +21,10 @@
         android:text="location"
         android:textAppearance="@android:style/TextAppearance.Material.Medium"
         android:layout_height="80dp"
-        android:textColor="@color/cast_expanded_controller_background_color" />
+        android:weightSum="1"
+        android:textColor="@color/cast_expanded_controller_background_color"
+        android:layout_width="match_parent" />
+
     </TableRow>
 
     <TableRow>
@@ -32,14 +34,8 @@
         android:id="@+id/showLocButton"
         android:onClick="showMaps"
         android:layout_weight="0.09"
-        android:layout_width="wrap_content" />
+        android:layout_width="match_parent" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/refreshButton"
-            android:text="Refresh"
-            android:onClick="refresh" />
     </TableRow>
     <TableRow>
 
@@ -84,5 +80,6 @@
         android:textOn="Light On"
         android:textColorLink="@android:color/holo_green_light"
         android:onClick="light" />
+
     </TableRow>
 </TableLayout>
