@@ -24,12 +24,7 @@ public class LocationUpdate extends AsyncTask<Void, Void, Void> {
 
     Activity baseActivity;
     TextView locationTextView;
-    static Integer licz = 0;
-    //private GoogleApiClient mGoogleApiClient;
-    private String mLatitudeText;
-    private String mLongitudeText;
-    StringBuffer latitudeSymbol = new StringBuffer();
-    StringBuffer longitudeSymbol = new StringBuffer();
+
 
     public LocationUpdate(Activity baseActivity) {
         this.baseActivity = baseActivity;
@@ -49,14 +44,13 @@ public class LocationUpdate extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... arg0) {
 
-        MainActivity.mGoogleApiClient.reconnect();
+
         return null;
     }
 
     @Override
     protected void onPostExecute(Void result) {
-        locationTextView.setText("Your location : \n"+mLatitudeText+" "+latitudeSymbol+" "+mLongitudeText+" " + longitudeSymbol);
-        locationTextView.setText("Skończyłem async"+licz);
+
         //System.out.println("Skończyłem async"+licz);
 
         new LocationUpdate(baseActivity).execute();

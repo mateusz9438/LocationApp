@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
@@ -12,74 +12,62 @@
     tools:context="com.example.locationapp.MainActivity"
     android:weightSum="1">
 
-    <TableRow>
     <TextView
-        android:layout_below="@+id/locationLabel"
+        android:text="location"
+        android:layout_width="match_parent"
+        android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:id="@+id/locationTextView"
-        android:layout_alignParentEnd="true"
-        android:text="location"
+        android:layout_height="70dp"
         android:textAppearance="@android:style/TextAppearance.Material.Medium"
-        android:layout_height="80dp"
-        android:weightSum="1"
-        android:textColor="@color/cast_expanded_controller_background_color"
-        android:layout_width="match_parent" />
+        android:textColor="?android:attr/textColorPrimaryDisableOnly" />
 
-    </TableRow>
-
-    <TableRow>
-    <Button
-        android:text="Show your localization"
-        android:layout_height="wrap_content"
-        android:id="@+id/showLocButton"
-        android:onClick="showMaps"
-        android:layout_weight="0.09"
-        android:layout_width="match_parent" />
-
-    </TableRow>
-    <TableRow>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:id="@+id/gyroscopeTextView"
-            android:layout_below="@+id/locationTextView"
-            android:layout_alignParentStart="true"
-            android:text="gyroscope"
-            android:textAppearance="@android:style/TextAppearance.Material.Medium"
-            android:layout_height="120dp"
-            android:textColor="@color/cast_expanded_controller_background_color" />
-    </TableRow>
-
-    <TableRow>
     <TextView
+        android:text="gyroscope"
         android:layout_width="match_parent"
-        android:id="@+id/lightTextView"
+        android:id="@+id/gyroscopeTextView"
+        android:layout_below="@+id/locationTextView"
+        android:layout_alignParentStart="true"
+        android:textColor="@color/cast_expanded_controller_background_color"
+        android:layout_height="70dp" />
+
+    <TextView
+        android:text="light"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
         android:layout_below="@+id/gyroscopeTextView"
         android:layout_alignParentStart="true"
-        android:text="light"
-        android:textAppearance="@android:style/TextAppearance.Material.Medium"
-        android:layout_height="80dp"
+        android:id="@+id/lightTextView"
         android:textColor="@color/cast_expanded_controller_background_color" />
-    </TableRow>
-    <TableRow>
+
     <TextView
-        android:text="Compass"
+        android:text="compass"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_below="@+id/lightTextView"
+        android:layout_alignParentStart="true"
         android:id="@+id/compassTextView"
-        android:textAppearance="@android:style/TextAppearance.Material.Medium"
-        android:textColor="@color/cast_expanded_controller_background_color" />
-    </TableRow>
-    <TableRow android:layout_width="match_parent">
+        android:textColor="@color/cast_expanded_controller_background_color"
+        android:layout_height="70dp" />
+
+
     <ToggleButton
         android:text="ToggleButton"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/flashlightSwitch"
         android:textOff="Light Off"
         android:textOn="Light On"
-        android:textColorLink="@android:color/holo_green_light"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
         android:onClick="light" />
 
-    </TableRow>
-</TableLayout>
+    <fragment
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+
+        android:id="@+id/map"
+
+        android:layout_below="@+id/compassTextView"
+        android:layout_alignParentStart="true" />
+</RelativeLayout>

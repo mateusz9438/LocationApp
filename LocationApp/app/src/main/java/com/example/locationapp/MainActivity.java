@@ -1,10 +1,8 @@
 package com.example.locationapp;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-
 
 import android.hardware.Camera;
 import android.hardware.Sensor;
@@ -14,7 +12,6 @@ import android.hardware.SensorManager;
 
 import android.location.Location;
 
-import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,22 +20,33 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
+
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+
+import com.google.android.gms.maps.OnMapReadyCallback;
+
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import static com.example.locationapp.R.id.map;
 
 import android.widget.ToggleButton;
 
 import static java.lang.Math.*;
 
-public class MainActivity extends AppCompatActivity implements LocationListener, ConnectionCallbacks, OnConnectionFailedListener, SensorEventListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,LocationListener, ConnectionCallbacks, OnConnectionFailedListener, SensorEventListener {
 
+    private GoogleMap mMap;
 
     private ToggleButton flashlightSwitch;
     private TextView locationTextView;
@@ -56,11 +64,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     private boolean hasFlash;
     private Camera camera;
     private Camera.Parameters parameters;
-    public final static String EXTRA_MESSAGE = "com.example.firstapp.MESSAGE";
     private String mLatitudeText;
     private String mLongitudeText;
     private LocationRequest mLocationRequest;
+    private LatLng yourLocalization;
+    private int currentZoom;
 
+    private Location mCurrentLocation;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,11 +107,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             parameters = camera.getParameters();
         }
 
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(map);
+        mapFragment.getMapAsync(this);
+
         //new LocationUpdate(this).execute();
-
-
     }
-
 
     protected void onResume() {
         super.onResume();
@@ -110,7 +121,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL);
 
         mGoogleApiClient.connect();
-
     }
 
     protected void onStart() {
@@ -144,7 +154,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         }
     }
 
-
     public void flashOn() {
         parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
         camera.setParameters(parameters);
@@ -157,24 +166,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         camera.stopPreview();
     }
 
-
-    public void showMaps(View view) {
-
-        if (mLatitudeText != null && mLongitudeText != null) {
-
-            Intent intent = new Intent(this, MapsActivity.class);
-            double latitude = Double.parseDouble(mLatitudeText);
-            double longtitude = Double.parseDouble(mLongitudeText);
-
-            double[] values = new double[2];
-            values[0] = latitude;
-            values[1] = longtitude;
-            intent.putExtra(EXTRA_MESSAGE, values);
-            startActivity(intent);
-        }
-
-
-    }
 
     @Override
     public void onConnected(Bundle connectionHint) {
@@ -189,15 +180,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             return;
         }
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-
         boolean mRequestingLocationUpdates=true;
-
-
         updateLocationUI(mLastLocation);
         if (mRequestingLocationUpdates) {
             startLocationUpdates();
         }
-
     }
 
     public void updateLocationUI(Location location) {
@@ -223,16 +210,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             locationTextView.setText("Location failed");
         }
     }
-
     @Override
     public void onLocationChanged(Location location) {
-        Location mCurrentLocation = location;
+        mCurrentLocation = location;
         mLatitudeText = String.valueOf(mCurrentLocation.getLatitude());
         mLongitudeText = String.valueOf(mCurrentLocation.getLongitude());
         System.out.println("changed");
         updateLocationUI(mCurrentLocation);
 
-    }
+        refreshMaps(mMap);
+
+        }
 
     protected void startLocationUpdates() {
 
@@ -253,6 +241,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     {
         mGoogleApiClient.reconnect();
     }
+    
     @Override
     public void onConnectionFailed(ConnectionResult result) {
         System.out.println("connection failed");
@@ -264,9 +253,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        // This time step's delta rotation to be multiplied by the current rotation
-        // after computing it from the gyro sample data.
-
 
         if( event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
             if (timestamp != 0) {
@@ -317,6 +303,34 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
 
 
+    @Override
+    public void onMapReady(GoogleMap map) {
+
+
+        currentZoom=10;
+        mMap = map;
+        map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        map.getUiSettings().setZoomControlsEnabled(true);
+
+        refreshMaps(map);
+
+
+    }
+    public void refreshMaps(GoogleMap map)
+    {
+
+
+
+        try {
+            yourLocalization = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+            map.clear();
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLocalization, map.getCameraPosition().zoom));
+            map.addMarker(new MarkerOptions().position(yourLocalization).title("Marker in your localization"));
+        }
+        catch(java.lang.NullPointerException e){
+
+        }
+    }
 }
 
 
