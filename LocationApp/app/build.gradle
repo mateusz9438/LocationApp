@@ -4,6 +4,7 @@ android {
     compileSdkVersion 24
     buildToolsVersion "24.0.3"
     defaultConfig {
+        multiDexEnabled true
         applicationId "com.example.locationapp"
         minSdkVersion 21
         targetSdkVersion 24
@@ -26,6 +27,6 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.google.android.gms:play-services:10.0.0'
-    testCompile 'junit:junit:4.12'
     compile 'com.google.android.gms:play-services-maps:10.0.0'
+    testCompile 'junit:junit:4.12'
 }

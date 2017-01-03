@@ -1,6 +1,7 @@
 package com.example.locationapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mMap;
 
+    public final static String EXTRA_MESSAGE = "com.example.firstapp.MESSAGE";
     private ToggleButton flashlightSwitch;
     private TextView locationTextView;
     private TextView gyroscopeTextView;
@@ -120,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL);
 
-        mGoogleApiClient.connect();
+        mGoogleApiClient.reconnect();
     }
 
     protected void onStart() {
@@ -133,6 +135,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mGoogleApiClient.disconnect();
         super.onStop();
         flashOff();
+
+    }
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        camera.release();
     }
 
     @Override
@@ -140,6 +148,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onPause();
         mSensorManager.unregisterListener(this);
         flashOff();
+
+
     }
 
     public void light(View view) {
@@ -170,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onConnected(Bundle connectionHint) {
 
-        System.out.println("connected");
+
         mLocationRequest = LocationRequest.create();
         mLocationRequest.setInterval(3000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -215,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mCurrentLocation = location;
         mLatitudeText = String.valueOf(mCurrentLocation.getLatitude());
         mLongitudeText = String.valueOf(mCurrentLocation.getLongitude());
-        System.out.println("changed");
+
         updateLocationUI(mCurrentLocation);
 
         refreshMaps(mMap);
@@ -228,20 +238,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             return;
         }
-        System.out.println("startupdates");
+
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
     }
     public void refresh(View view)
     {
 
-        locationReconnect();
+        //locationReconnect();
     }
+
     public void locationReconnect()
     {
         mGoogleApiClient.reconnect();
     }
-    
+
+
     @Override
     public void onConnectionFailed(ConnectionResult result) {
         System.out.println("connection failed");
@@ -307,7 +319,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap map) {
 
 
-        currentZoom=10;
+        currentZoom=12;
         mMap = map;
         map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         map.getUiSettings().setZoomControlsEnabled(true);
@@ -318,9 +330,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     public void refreshMaps(GoogleMap map)
     {
-
-
-
         try {
             yourLocalization = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
             map.clear();
@@ -330,6 +339,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         catch(java.lang.NullPointerException e){
 
         }
+    }
+
+    public void showMaps(View view)
+    {
+        Intent intent= new Intent(this, MapsActivity.class);
+        String message=mLatitudeText+" "+mLongitudeText;
+
+        intent.putExtra(EXTRA_MESSAGE,message);
+        startActivity(intent);
     }
 }
 
